@@ -2,12 +2,13 @@
 
 from app import app, db
 from flask import jsonify, request
-from app.models import Movie, MovieSchema
+from app.models import Movie, MovieSchema, Director, DirectorSchema, Genre, GenreSchema
 from app.errors import NotFoundError, ValidationError, BadRequestError
 import time
 # from marshmallow
 
 
+# error handlers
 @app.errorhandler(404)
 @app.errorhandler(NotFoundError)
 def on_not_found_error(error):
@@ -29,6 +30,7 @@ def index():
     return 'Movies API', 200
 
 
+# movies endpoints
 @app.route('/movies/')
 def get_movies():
     # OPTION #1 - my preferable
@@ -101,3 +103,61 @@ def get_movie_by_id(uid: int):
 @app.route('/movies/count/')
 def get_movies_count():
     return jsonify(Movie.query.count())
+
+
+# directors endpoints
+@app.route('/directors/')
+def get_directors():
+    # OPTION #1 - my preferable
+    # sql = "select * from director"
+    # if not (res := db.engine.execute(sql).fetchall()):
+    #     raise NotFoundError
+    # return jsonify([dict(i) for i in res])
+
+    # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
+    if not (res := Director.query.all()):
+        raise NotFoundError
+    return jsonify(DirectorSchema(many=True).dump(res))
+
+
+@app.route('/directors/<int:uid>')
+def get_director_by_id(uid: int):
+    # OPTION #1 - my preferable
+    # sql = f"select * from movie where id = {uid}"
+    # if not (res := db.engine.execute(sql).first()):
+    #     raise NotFoundError
+    # return jsonify(dict(res))
+
+    # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
+    if not (res := Director.query.get(uid)):
+        raise NotFoundError
+    return jsonify(DirectorSchema().dump(res))
+
+
+# genres endpoints
+@app.route('/genres/')
+def get_genres():
+    # OPTION #1 - my preferable
+    # sql = "select * from genre"
+    # if not (res := db.engine.execute(sql).fetchall()):
+    #     raise NotFoundError
+    # return jsonify([dict(i) for i in res])
+
+    # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
+    if not (res := Genre.query.all()):
+        raise NotFoundError
+    return jsonify(GenreSchema(many=True).dump(res))
+
+
+@app.route('/genres/<int:uid>')
+def get_genre_by_id(uid: int):
+    # OPTION #1 - my preferable
+    # sql = f"select * from movie where id = {uid}"
+    # if not (res := db.engine.execute(sql).first()):
+    #     raise NotFoundError
+    # return jsonify(dict(res))
+
+    # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
+    if not (res := Genre.query.get(uid)):
+        raise NotFoundError
+    return jsonify(GenreSchema().dump(res))

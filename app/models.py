@@ -39,3 +39,13 @@ class MovieSchema(Schema):
     # genre = db.relationship("Genre")
     director_id = fields.Int()
     # director = db.relationship("Director")
+
+
+class DirectorSchema(Schema):
+    id = fields.Int()
+    name = fields.Str()
+
+
+class GenreSchema(Schema):
+    id = fields.Int()
+    name = fields.Str()

@@ -1,9 +1,11 @@
-# app.py
-
-from flask import Flask, request
 from flask_restx import Api, Resource
-from flask_sqlalchemy import SQLAlchemy
-from app import app
+from app import app, db
+from app.models import Movie, Director, Genre
+
+
+@app.shell_context_processor
+def make_shell_context():
+    return {'db': db, 'Movie': Movie, 'Director': Director, 'Genre': Genre}
 
 
 if __name__ == '__main__':

@@ -7,7 +7,6 @@ from flask import jsonify, request
 from app.models import Movie, MovieSchema, Director, DirectorSchema, Genre, GenreSchema
 from app.errors import NotFoundError, ValidationError, BadRequestError, NoContentError
 import time
-# from marshmallow
 
 
 # error handlers

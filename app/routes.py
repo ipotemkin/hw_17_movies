@@ -1,5 +1,6 @@
 # TODO: Как загнать в схему db.relationship?
 # TODO: Если в PUT ID в URL не равен ID в теле запроса, какую ошибку возвращать?
+# TODO: Delete при успехе возвращает 204?
 
 from app import app, db
 from flask import jsonify, request
@@ -176,17 +177,14 @@ def update_director(uid: int):
 
 @app.route('/directors/<int:uid>', methods=['DELETE'])
 def delete_director(uid: int):
-
     if not (director := Director.query.get(uid)):
         raise NotFoundError
-
     try:
         db.session.delete(director)
         db.session.commit()
     except Exception:
         raise BadRequestError
-
-    return f"deleted /directors/{director.id}", 200
+    return f"deleted /directors/{director.id}", 200  # исправить на 204?
 
 
 # genres endpoints
@@ -216,3 +214,49 @@ def get_genre_by_id(uid: int):
     if not (res := Genre.query.get(uid)):
         raise NotFoundError
     return jsonify(GenreSchema().dump(res))
+
+
+@app.route('/genres/', methods=['POST'])
+def add_genre():
+    genre_json = request.get_json()
+    if not genre_json:
+        raise BadRequestError
+    genre = Genre(**genre_json)
+    try:
+        db.session.add(genre)
+        db.session.commit()
+    except Exception:
+        raise BadRequestError
+    return f"/genres/{genre.id}", 201
+
+
+@app.route('/genres/<int:uid>', methods=['PUT'])
+def update_genre(uid: int):
+    if not (genre_json := request.get_json()):
+        raise NoContentError
+
+    if not (genre := Genre.query.get(uid)):
+        raise NotFoundError
+
+    try:
+        if genre.id != genre_json["id"]:
+            raise BadRequestError
+        genre.name = genre_json["name"]
+        db.session.add(genre)
+        db.session.commit()
+    except Exception:
+        raise BadRequestError
+
+    return f"updated /genres/{genre.id}", 200
+
+
+@app.route('/genres/<int:uid>', methods=['DELETE'])
+def delete_genre(uid: int):
+    if not (genre := Genre.query.get(uid)):
+        raise NotFoundError
+    try:
+        db.session.delete(genre)
+        db.session.commit()
+    except Exception:
+        raise BadRequestError
+    return f"deleted /genres/{genre.id}", 200  # исправить на 204?

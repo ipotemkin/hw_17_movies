@@ -1,9 +1,10 @@
 # TODO: Как загнать в схему db.relationship?
+# TODO: Если в PUT ID в URL не равен ID в теле запроса, какую ошибку возвращать?
 
 from app import app, db
 from flask import jsonify, request
 from app.models import Movie, MovieSchema, Director, DirectorSchema, Genre, GenreSchema
-from app.errors import NotFoundError, ValidationError, BadRequestError
+from app.errors import NotFoundError, ValidationError, BadRequestError, NoContentError
 import time
 # from marshmallow
 
@@ -21,8 +22,13 @@ def on_not_validation_error(error):
 
 
 @app.errorhandler(BadRequestError)
-def on_not_validation_error(error):
+def on_bad_request_error(error):
     return "Bad request error", 405
+
+
+@app.errorhandler(NoContentError)
+def on_no_content_error(error):
+    return "No Content error", 204
 
 
 @app.route('/')
@@ -132,6 +138,55 @@ def get_director_by_id(uid: int):
     if not (res := Director.query.get(uid)):
         raise NotFoundError
     return jsonify(DirectorSchema().dump(res))
+
+
+@app.route('/directors/', methods=['POST'])
+def add_director():
+    director_json = request.get_json()
+    if not director_json:
+        raise BadRequestError
+    director = Director(**director_json)
+    try:
+        db.session.add(director)
+        db.session.commit()
+    except Exception:
+        raise BadRequestError
+    return f"/directors/{director.id}", 201
+
+
+@app.route('/directors/<int:uid>', methods=['PUT'])
+def update_director(uid: int):
+    if not (director_json := request.get_json()):
+        raise NoContentError
+
+    if not (director := Director.query.get(uid)):
+        raise NotFoundError
+
+    try:
+        if director.id != director_json["id"]:
+            raise BadRequestError
+        director.name = director_json["name"]
+        db.session.add(director)
+        db.session.commit()
+    except Exception:
+        raise BadRequestError
+
+    return f"updated /directors/{director.id}", 200
+
+
+@app.route('/directors/<int:uid>', methods=['DELETE'])
+def delete_director(uid: int):
+
+    if not (director := Director.query.get(uid)):
+        raise NotFoundError
+
+    try:
+        db.session.delete(director)
+        db.session.commit()
+    except Exception:
+        raise BadRequestError
+
+    return f"deleted /directors/{director.id}", 200
 
 
 # genres endpoints

@@ -8,3 +8,7 @@ class BadRequestError(Exception):
 
 class ValidationError(Exception):
     pass
+
+
+class NoContentError(Exception):
+    pass

@@ -4,6 +4,7 @@ from app import app, db
 from flask import jsonify, request
 from app.models import Movie, MovieSchema
 from app.errors import NotFoundError, ValidationError, BadRequestError
+import time
 # from marshmallow
 
 
@@ -31,22 +32,55 @@ def index():
 @app.route('/movies/')
 def get_movies():
     # OPTION #1 - my preferable
-    # sql = "select * from movie"
-    # if director_id := request.args.get('director_id'):
-    #     sql += f" where director_id = '{director_id}'"
-    # if not (res := db.engine.execute(sql).fetchall()):
-    #     raise NotFoundError
-    # return jsonify([dict(i) for i in res])
+    t0 = time.perf_counter()
+    sql = "select * from movie"
+    sql_where = []
+    if director_id := request.args.get('director_id'):
+        sql_where.append(f"director_id = '{director_id}'")
+    if genre_id := request.args.get('genre_id'):
+        sql_where.append(f"genre_id = '{genre_id}'")
+    if sql_where:
+        sql += " where " + ' and '.join(sql_where)
+    if not (res := db.engine.execute(sql).fetchall()):
+        raise NotFoundError
+    elapsed = time.perf_counter() - t0
+    print("[%0.8fs]" % elapsed)
+    return jsonify([dict(i) for i in res])
 
     # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
-    if director_id := request.args.get('director_id'):
+    # director_id = request.args.get('director_id')
+    # genre_id = request.args.get('genre_id')
+    # if director_id and genre_id:
+    #     res = Movie.query.where(Movie.director_id == director_id).where(Movie.genre_id == genre_id).all()
+    # elif director_id:
+    #     res = Movie.query.where(Movie.director_id == director_id).all()
+    # elif genre_id:
+    #     res = Movie.query.where(Movie.genre_id == genre_id).all()
+    # else:
+    #     res = Movie.query.all()
+    # if not res:
+    #     raise NotFoundError
+    # return jsonify(MovieSchema(many=True).dump(res))
+
+
+@app.route('/movies1/')
+def get_movies1():
+    # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
+    t0 = time.perf_counter()
+    director_id = request.args.get('director_id')
+    genre_id = request.args.get('genre_id')
+    if director_id and genre_id:
+        res = Movie.query.where(Movie.director_id == director_id).where(Movie.genre_id == genre_id).all()
+    elif director_id:
         res = Movie.query.where(Movie.director_id == director_id).all()
-    elif genre_id := request.args.get('genre_id'):
+    elif genre_id:
         res = Movie.query.where(Movie.genre_id == genre_id).all()
     else:
         res = Movie.query.all()
     if not res:
         raise NotFoundError
+    elapsed = time.perf_counter() - t0
+    print("[%0.8fs]" % elapsed)
     return jsonify(MovieSchema(many=True).dump(res))
 
 

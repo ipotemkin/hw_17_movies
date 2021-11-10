@@ -3,7 +3,24 @@
 from app import app, db
 from flask import jsonify, request
 from app.models import Movie, MovieSchema
+from app.errors import NotFoundError, ValidationError, BadRequestError
 # from marshmallow
+
+
+@app.errorhandler(404)
+@app.errorhandler(NotFoundError)
+def on_not_found_error(error):
+    return "Not found", 404
+
+
+@app.errorhandler(ValidationError)
+def on_not_validation_error(error):
+    return "Validation error", 400
+
+
+@app.errorhandler(BadRequestError)
+def on_not_validation_error(error):
+    return "Bad request error", 405
 
 
 @app.route('/')
@@ -21,11 +38,12 @@ def get_movies():
 
     # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
     if director_id := request.args.get('director_id'):
-        res = Movie.query.where(Movie.director_id == director_id)
+        res = Movie.query.where(Movie.director_id == director_id).all()
     else:
         res = Movie.query.all()
-    movies_lst = MovieSchema(many=True).dump(res)
-    return jsonify(movies_lst)
+    if not res:
+        raise NotFoundError
+    return jsonify(MovieSchema(many=True).dump(res))
 
 
 @app.route('/movies/<int:uid>')
@@ -35,9 +53,9 @@ def get_movie_by_id(uid: int):
     # return jsonify(dict(db.engine.execute(sql).first()))
 
     # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
-    res = Movie.query.get(uid)
-    movies_dict = MovieSchema().dump(res)
-    return jsonify(movies_dict)
+    if not (res := Movie.query.get(uid)):
+        raise NotFoundError
+    return jsonify(MovieSchema().dump(res))
 
 
 @app.route('/movies/count/')

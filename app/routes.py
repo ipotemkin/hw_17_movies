@@ -33,12 +33,16 @@ def get_movies():
     # OPTION #1 - my preferable
     # sql = "select * from movie"
     # if director_id := request.args.get('director_id'):
-    #     sql += f" where director_id = {director_id}"
-    # return jsonify([dict(i) for i in db.engine.execute(sql)])
+    #     sql += f" where director_id = '{director_id}'"
+    # if not (res := db.engine.execute(sql).fetchall()):
+    #     raise NotFoundError
+    # return jsonify([dict(i) for i in res])
 
     # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
     if director_id := request.args.get('director_id'):
         res = Movie.query.where(Movie.director_id == director_id).all()
+    elif genre_id := request.args.get('genre_id'):
+        res = Movie.query.where(Movie.genre_id == genre_id).all()
     else:
         res = Movie.query.all()
     if not res:
@@ -50,7 +54,9 @@ def get_movies():
 def get_movie_by_id(uid: int):
     # OPTION #1 - my preferable
     # sql = f"select * from movie where id = {uid}"
-    # return jsonify(dict(db.engine.execute(sql).first()))
+    # if not (res := db.engine.execute(sql).first()):
+    #     raise NotFoundError
+    # return jsonify(dict(res))
 
     # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
     if not (res := Movie.query.get(uid)):

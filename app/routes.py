@@ -36,3 +36,9 @@ def get_movie_by_id(uid: int):
     res = Movie.query.get(uid)
     movies_dict = MovieSchema().dump(res)
     return jsonify(movies_dict)
+
+
+@app.route('/movies/count/')
+def get_movies_count():
+    return jsonify(Movie.query.count())
+

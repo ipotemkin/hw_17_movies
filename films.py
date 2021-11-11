@@ -1,4 +1,3 @@
-from flask_restx import Api, Resource
 from app import app, db
 from app.models import Movie, Director, Genre
 

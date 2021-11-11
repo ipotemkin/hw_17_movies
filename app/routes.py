@@ -34,30 +34,34 @@ class MoviesView(Resource):
 
     @staticmethod
     def get():
-        # OPTION #1 - my preferable
-        # sql = "select * from movie"
-        # sql_where = []
-        # if director_id := request.args.get('director_id'):
-        #     sql_where.append(f"director_id = '{director_id}'")
-        # if genre_id := request.args.get('genre_id'):
-        #     sql_where.append(f"genre_id = '{genre_id}'")
-        # if sql_where:
-        #     sql += " where " + ' and '.join(sql_where)
-        # if not (res := db.engine.execute(sql).fetchall()):
-        #     raise NotFoundError
-        # return [dict(i) for i in res]
+        start = 0  # default screen - 1
+        limit = None  # number of movies on one screen
+        args = request.args
+        if 'page' in args:
+            limit = 5  # default number of movies on one screen
+            try:
+                page = int(args.get('page'))
+            except Exception:
+                raise BadRequestError
+            start = (page - 1) * limit
+        elif 'limit' in args and 'start' in args:
+            try:
+                limit = int(args.get('limit'))
+                start = (int(args.get('start')) - 1) * limit
+            except Exception:
+                raise BadRequestError
 
-        # OPTION #2 - I don't like ORM queries, so it's just to meet the lesson topic
-        director_id = request.args.get('director_id')
-        genre_id = request.args.get('genre_id')
+        director_id = args.get('director_id')
+        genre_id = args.get('genre_id')
         if director_id and genre_id:
-            res = db.session.query(Movie).filter(Movie.director_id == director_id, Movie.genre_id == genre_id).all()
+            res = db.session.query(Movie).filter(Movie.director_id == director_id,
+                                                 Movie.genre_id == genre_id).limit(limit).offset(start).all()
         elif director_id:
-            res = db.session.query(Movie).filter(Movie.director_id == director_id).all()
+            res = db.session.query(Movie).filter(Movie.director_id == director_id).limit(limit).offset(start).all()
         elif genre_id:
-            res = db.session.query(Movie).filter(Movie.genre_id == genre_id).all()
+            res = db.session.query(Movie).filter(Movie.genre_id == genre_id).limit(limit).offset(start).all()
         else:
-            res = Movie.query.all()
+            res = Movie.query.limit(limit).offset(start).all()
         if not res:
             raise NotFoundError
         return jsonify(MovieSchema(many=True).dump(res))

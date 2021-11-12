@@ -34,6 +34,12 @@ class MoviesView(Resource):
 
     @staticmethod
     def get():
+        """
+        To get all movies from the database.
+        Pagination available with 'page' and 'limit' + 'start' key words.
+        Filter available with director_id and gere_id key words.
+        """
+
         start = 0  # default screen - 1
         limit = None  # number of movies on one screen
         args = request.args
@@ -71,6 +77,10 @@ class MoviesView(Resource):
 class MovieView(Resource):
     @staticmethod
     def get(uid: int):
+        """
+        To get a movie by its id.
+        """
+
         # OPTION #1 - my preferable
         # sql = f"select * from movie where id = {uid}"
         # if not (res := db.engine.execute(sql).first()):
@@ -87,6 +97,10 @@ class MovieView(Resource):
 class MoviesCountView(Resource):
     @staticmethod
     def get():
+        """
+        To get the number of movies in the database
+        """
+
         return jsonify(Movie.query.count())
 
 
@@ -95,6 +109,10 @@ class MoviesCountView(Resource):
 class DirectorsView(Resource):
     @staticmethod
     def get():
+        """
+        To get all directors from the database
+        """
+
         # OPTION #1 - my preferable
         # sql = "select * from director"
         # if not (res := db.engine.execute(sql).fetchall()):
@@ -108,6 +126,10 @@ class DirectorsView(Resource):
 
     @staticmethod
     def post():
+        """
+        To add a director into the database.
+        """
+
         director_json = request.get_json()
         if not director_json:
             raise BadRequestError
@@ -124,6 +146,10 @@ class DirectorsView(Resource):
 class DirectorView(Resource):
     @staticmethod
     def get(uid: int):
+        """
+        To get a director with the given id.
+        """
+
         # OPTION #1 - my preferable
         # sql = f"select * from movie where id = {uid}"
         # if not (res := db.engine.execute(sql).first()):
@@ -137,6 +163,10 @@ class DirectorView(Resource):
 
     @staticmethod
     def put(uid: int):
+        """
+        Update a director with the given id in the database
+        """
+
         if not (director_json := request.get_json()):
             raise NoContentError
 
@@ -156,6 +186,10 @@ class DirectorView(Resource):
 
     @staticmethod
     def delete(uid: int):
+        """
+        To delete a director with the given id
+        """
+
         if not (director := Director.query.get(uid)):
             raise NotFoundError
         try:
@@ -171,6 +205,10 @@ class DirectorView(Resource):
 class GenresView(Resource):
     @staticmethod
     def get():
+        """
+        To get all genres from the database.
+        """
+
         # OPTION #1 - my preferable
         # sql = "select * from genre"
         # if not (res := db.engine.execute(sql).fetchall()):
@@ -184,6 +222,10 @@ class GenresView(Resource):
 
     @staticmethod
     def post():
+        """
+        To add a new genre to the database.
+        """
+
         genre_json = request.get_json()
         if not genre_json:
             raise BadRequestError
@@ -200,6 +242,10 @@ class GenresView(Resource):
 class GenreView(Resource):
     @staticmethod
     def get(uid: int):
+        """
+        To get a genre with the given id.
+        """
+
         # OPTION #1 - my preferable
         # sql = f"select * from movie where id = {uid}"
         # if not (res := db.engine.execute(sql).first()):
@@ -213,6 +259,10 @@ class GenreView(Resource):
 
     @staticmethod
     def put(uid: int):
+        """
+        To update a genre with the given id.
+        """
+
         if not (genre_json := request.get_json()):
             raise NoContentError
 
@@ -232,6 +282,10 @@ class GenreView(Resource):
 
     @staticmethod
     def delete(uid: int):
+        """
+        To delete a genre with the given id.
+        """
+
         if not (genre := Genre.query.get(uid)):
             raise NotFoundError
         try:
